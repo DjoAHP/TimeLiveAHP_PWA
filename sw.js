@@ -4,7 +4,7 @@
                Tout le reste passe par le réseau
    ============================================= */
 
-const CACHE_NAME = 'timeliveahp-static-v2';
+const CACHE_NAME = 'timeliveahp-static-v3';
 
 // Uniquement les fichiers locaux du projet
 const STATIC_ASSETS = [
