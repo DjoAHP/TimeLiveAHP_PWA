@@ -682,27 +682,29 @@ function renderTimeline() {
   const tonightConcerts = state.concerts.filter(
     (c) => isTonight(c.date) && (c.status || "confirmé") !== "annulé",
   );
-  if (tonightConcerts.length > 0) {
-    const c = tonightConcerts[0];
-    const sc = statusConfig(c.status || "confirmé");
-    banner.className = "tonight-banner";
-    banner.innerHTML = `
-      <div class="tonight-banner-inner">
-        <div class="tonight-banner-left">
-          <span class="tonight-pulse"></span>
-          <span class="tonight-label">CE SOIR</span>
-        </div>
-        <div class="tonight-banner-info">
-          <span class="tonight-band" style="color:${c.band_color || "var(--accent)"}">${escHtml(c.band_name)}</span>
-          <span class="tonight-details">
-            ${escHtml(c.venue_name)} · ${escHtml(c.city)}${c.time ? " · " + c.time : ""}
-          </span>
-        </div>
-        ${tonightConcerts.length > 1 ? `<span class="tonight-more">+${tonightConcerts.length - 1}</span>` : ""}
-      </div>`;
-  } else {
-    banner.className = "tonight-banner hidden";
-    banner.innerHTML = "";
+  if (banner) {
+    if (tonightConcerts.length > 0) {
+      const c = tonightConcerts[0];
+      const sc = statusConfig(c.status || "confirmé");
+      banner.className = "tonight-banner";
+      banner.innerHTML = `
+        <div class="tonight-banner-inner">
+          <div class="tonight-banner-left">
+            <span class="tonight-pulse"></span>
+            <span class="tonight-label">CE SOIR</span>
+          </div>
+          <div class="tonight-banner-info">
+            <span class="tonight-band" style="color:${c.band_color || "var(--accent)"}">${escHtml(c.band_name)}</span>
+            <span class="tonight-details">
+              ${escHtml(c.venue_name)} · ${escHtml(c.city)}${c.time ? " · " + c.time : ""}
+            </span>
+          </div>
+          ${tonightConcerts.length > 1 ? `<span class="tonight-more">+${tonightConcerts.length - 1}</span>` : ""}
+        </div>`;
+    } else {
+      banner.className = "tonight-banner hidden";
+      banner.innerHTML = "";
+    }
   }
 
   // Mise à jour compteur
@@ -1420,10 +1422,10 @@ function closeSidebar() {
 //  FILTRES
 // =============================================
 function applyFilters() {
-  state.filters.band = document.getElementById("filter-band").value;
-  state.filters.city = document.getElementById("filter-city").value.trim();
-  state.filters.type = document.getElementById("filter-type").value;
-  state.filters.status = document.getElementById("filter-status").value;
+  state.filters.band   = document.getElementById("filter-band").value;
+  state.filters.city   = document.getElementById("filter-city").value.trim();
+  state.filters.type   = document.getElementById("filter-type").value;
+  state.filters.status = document.getElementById("filter-status")?.value || "";
   renderTimeline();
 }
 
@@ -1431,7 +1433,8 @@ function resetFilters() {
   document.getElementById("filter-band").value = "";
   document.getElementById("filter-city").value = "";
   document.getElementById("filter-type").value = "";
-  document.getElementById("filter-status").value = "";
+  const fs = document.getElementById("filter-status");
+  if (fs) fs.value = "";
   state.filters = { band: "", city: "", type: "", status: "" };
   renderTimeline();
 }
