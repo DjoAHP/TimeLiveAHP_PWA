@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concert – TimeLiveAHP</title>
+  <link rel="stylesheet" href="style.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+    .share-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+
+    .share-card {
+      width: 100%;
+      max-width: 480px;
+      padding: 36px 32px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(124, 58, 237, 0.2);
+      animation: card-in 0.5s cubic-bezier(.4, 0, .2, 1) both;
+    }
+
+    .share-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .share-band {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      line-height: 1.15;
+    }
+
+    .share-detail {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .share-detail:last-of-type {
+      border-bottom: none;
+    }
+
+    .share-detail-icon {
+      font-size: 1.2rem;
+      width: 26px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .share-detail-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .share-detail-value {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .share-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124, 58, 237, 0.18);
+      color: var(--accent2);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .share-maps-btn {
+      display: block;
+      margin-top: 24px;
+      padding: 14px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #353434;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all var(--transition);
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .share-maps-btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .share-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .share-footer a {
+      color: var(--accent2);
+    }
+
+    .share-poster {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 60px 0;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="auth-bg-effects">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+  <div class="share-page">
+    <div class="share-card glass" id="share-card">
+      <div class="loading-state">
+        <span class="spinner" style="width:28px;height:28px;border-width:3px"></span>
+        <p style="margin-top:12px">Chargement du concert...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Firebase Config (même que app.js) ----
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAFJnlyb3nN_ZQ5Mh2kvcZpBzczzeFa9nE",
+      authDomain: "timelivev1.firebaseapp.com",
+      projectId: "timelivev1",
+      storageBucket: "timelivev1.firebasestorage.app",
+      messagingSenderId: "1062792579553",
+      appId: "1:1062792579553:web:b82e14388097b4e24b6aa0"
+    };
+
+    const DEMO_MODE = FIREBASE_CONFIG.apiKey === "VOTRE_API_KEY";
+
+    if (!DEMO_MODE) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      const db = firebase.firestore();
+      loadConcertFromFirebase(db);
+    } else {
+      loadConcertFromLocalStorage();
+    }
+
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function typeEmoji(type) {
+      const map = { festival: '🎪', salle: '🏛️', bar: '🍺', 'intérieur': '🏠', 'extérieur': '🌳', 'privé': '🔒', 'tournée': '🚌' };
+      return map[type] || '🎵';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function loadConcertFromLocalStorage() {
+      const id = getParam('id');
+      if (!id) { showError('Aucun identifiant de concert fourni.'); return; }
+      try {
+        const concerts = JSON.parse(localStorage.getItem('tla_concerts') || '[]');
+        const concert = concerts.find(c => c.id === id);
+        if (concert) renderConcert(concert);
+        else showError('Concert introuvable dans les données locales.');
+      } catch (e) {
+        showError('Erreur de chargement.');
+      }
+    }
+
+    async function loadConcertFromFirebase(db) {
+      const id = getParam('id');
+      if (!id) { showError('Aucun identifiant de concert fourni.'); return; }
+      try {
+        // Chercher dans tous les users (nécessite des règles permissives pour les concerts publics)
+        // Ici, on cherche avec un group query – simplifié pour l'exemple
+        const snap = await db.collectionGroup('concerts').where(firebase.firestore.FieldPath.documentId(), '==', id).get();
+        if (!snap.empty) {
+          renderConcert({ id, ...snap.docs[0].data() });
+        } else {
+          showError('Concert introuvable.');
+        }
+      } catch (e) {
+        console.error(e);
+        showError('Erreur de chargement. Vérifiez les règles Firestore.');
+      }
+    }
+
+    function renderConcert(c) {
+      document.title = `${c.band_name} @ ${c.venue_name} – TimeLiveAHP`;
+      const color = c.band_color || '#7c3aed';
+      document.getElementById('share-card').innerHTML = `
+        <div class="share-header">
+          <span>🎵</span>
+          <a href="index.html" style="color:var(--accent2);font-weight:600">TimeLiveAHP</a>
+          <span>·</span><span>Concert</span>
+        </div>
+        ${c.poster_image_url ? `<img class="share-poster" src="${escHtml(c.poster_image_url)}" alt="Affiche" onerror="this.style.display='none'">` : ''}
+        <div class="share-band" style="color:${color}">${escHtml(c.band_name)}</div>
+
+        <div class="share-detail">
+          <div class="share-detail-icon">📅</div>
+          <div>
+            <div class="share-detail-label">Date & heure</div>
+            <div class="share-detail-value">${formatDate(c.date)}${c.time ? ' – ' + c.time : ''}</div>
+          </div>
+        </div>
+        <div class="share-detail">
+          <div class="share-detail-icon">🏟️</div>
+          <div>
+            <div class="share-detail-label">Lieu</div>
+            <div class="share-detail-value">${escHtml(c.venue_name)}</div>
+          </div>
+        </div>
+        <div class="share-detail">
+          <div class="share-detail-icon">📍</div>
+          <div>
+            <div class="share-detail-label">Ville</div>
+            <div class="share-detail-value">${escHtml(c.city)}${c.country ? ', ' + escHtml(c.country) : ''}</div>
+          </div>
+        </div>
+        ${c.event_type ? `
+        <div class="share-detail">
+          <div class="share-detail-icon">${typeEmoji(c.event_type)}</div>
+          <div>
+            <div class="share-detail-label">Type</div>
+            <div class="share-detail-value"><span class="share-type-badge">${typeEmoji(c.event_type)} ${escHtml(c.event_type)}</span></div>
+          </div>
+        </div>` : ''}
+        ${c.notes ? `
+        <div class="share-detail">
+          <div class="share-detail-icon">📝</div>
+          <div>
+            <div class="share-detail-label">Notes</div>
+            <div class="share-detail-value" style="white-space:pre-wrap;font-size:.9rem;color:var(--text-muted)">${escHtml(c.notes)}</div>
+          </div>
+        </div>` : ''}
+
+        ${c.google_maps_link ? `<a href="${escHtml(c.google_maps_link)}" target="_blank" rel="noopener" class="share-maps-btn">🗺️ Voir sur Google Maps</a>` : ''}
+
+        <div class="share-footer">
+          Géré avec <a href="index.html">TimeLiveAHP</a>
+        </div>`;
+    }
+
+    function showError(msg) {
+      document.getElementById('share-card').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">😕</div>
+          <p>${escHtml(msg)}</p>
+          <a href="index.html" class="btn-primary" style="max-width:200px;margin:16px auto 0;display:block;text-align:center">Retour à l'accueil</a>
+        </div>`;
+    }
+  </script>
+</body>
+
+</html>

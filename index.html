@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TimeLiveAHP</title>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f0f12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TimeLive" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <!-- Favicon & styles -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Firebase SDK v9 (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+
+  <!-- ===================== ÉCRAN DE CONNEXION ===================== -->
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-bg-effects">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="auth-card glass">
+      <div class="auth-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 47 34" class="auth-logo-svg">
+          <defs>
+            <filter id="authGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <rect x="0" y="11.5" width="7" height="11" rx="3.5" fill="#c8d8f0" opacity="0.55" filter="url(#authGlow)" />
+          <rect x="10" y="6" width="7" height="22" rx="3.5" fill="#ebeab0" opacity="0.8" filter="url(#authGlow)" />
+          <rect x="20" y="0" width="7" height="34" rx="3.5" fill="#ebeab0" opacity="1" filter="url(#authGlow)" />
+          <rect x="30" y="6" width="7" height="22" rx="3.5" fill="#ebeab0" opacity="0.8" filter="url(#authGlow)" />
+          <rect x="40" y="11.5" width="7" height="11" rx="3.5" fill="#c8d8f0" opacity="0.55" filter="url(#authGlow)" />
+        </svg>
+      </div>
+      <p class="auth-tagline">Gérez vos concerts.</p>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="tab-btn active" data-tab="login">Connexion</button>
+        <button class="tab-btn" data-tab="register">Inscription</button>
+      </div>
+
+      <!-- Login form -->
+      <div id="login-form" class="auth-form active">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="votre@email.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button class="btn-primary" id="btn-login">Se connecter</button>
+        <div class="auth-divider"><span>ou</span></div>
+        <button class="btn-google" id="btn-google-login">
+          <svg width="18" height="18" viewBox="0 0 48 48">
+            <path fill="#FFC107"
+              d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+            <path fill="#FF3D00"
+              d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+            <path fill="#4CAF50"
+              d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+            <path fill="#1976D2"
+              d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
+          </svg>
+          Continuer avec Google
+        </button>
+      </div>
+
+      <!-- Register form -->
+      <div id="register-form" class="auth-form">
+        <div class="form-group">
+          <label>Nom d'artiste</label>
+          <input type="text" id="register-name" placeholder="Votre nom ou pseudo" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="register-email" placeholder="votre@email.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="register-password" placeholder="Minimum 6 caractères"
+            autocomplete="new-password" />
+        </div>
+        <button class="btn-primary" id="btn-register">Créer un compte</button>
+      </div>
+
+      <div id="auth-error" class="auth-error"></div>
+    </div>
+  </div>
+
+  <!-- ===================== APPLICATION PRINCIPALE ===================== -->
+  <div id="app" class="app hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar glass" id="sidebar">
+      <div class="sidebar-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 47 34" width="38" height="28">
+          <defs>
+            <filter id="sidebarGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <!-- Barre 1 — extreme gauche (h=11, bleue) -->
+          <rect x="0" y="11.5" width="7" height="11" rx="3.5" fill="#c8d8f0" opacity="0.55"
+            filter="url(#sidebarGlow)" />
+          <!-- Barre 2 — gauche (h=22, beige) -->
+          <rect x="10" y="6" width="7" height="22" rx="3.5" fill="#ebeab0" opacity="0.8" filter="url(#sidebarGlow)" />
+          <!-- Barre 3 — centrale (h=34, beige plein) -->
+          <rect x="20" y="0" width="7" height="34" rx="3.5" fill="#ebeab0" opacity="1" filter="url(#sidebarGlow)" />
+          <!-- Barre 4 — droite (h=22, beige) -->
+          <rect x="30" y="6" width="7" height="22" rx="3.5" fill="#ebeab0" opacity="0.8" filter="url(#sidebarGlow)" />
+          <!-- Barre 5 — extreme droite (h=11, bleue) -->
+          <rect x="40" y="11.5" width="7" height="11" rx="3.5" fill="#c8d8f0" opacity="0.55"
+            filter="url(#sidebarGlow)" />
+        </svg>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-view="timeline">
+          <span class="nav-icon"><i data-lucide="calendar-days"></i></span>
+          <span>Timeline</span>
+        </a>
+        <a href="#" class="nav-item" data-view="dashboard">
+          <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-view="bands">
+          <span class="nav-icon"><i data-lucide="music-2"></i></span>
+          <span>Groupes</span>
+        </a>
+      </nav>
+
+      <!-- Filtres -->
+      <div class="sidebar-filters">
+        <h3 class="filter-title">Filtres</h3>
+        <div class="filter-group">
+          <label>Groupe</label>
+          <select id="filter-band" class="filter-select">
+            <option value="">Tous les groupes</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Ville</label>
+          <input type="text" id="filter-city" class="filter-input" placeholder="Ex: Paris" />
+        </div>
+        <div class="filter-group">
+          <label>Type</label>
+          <select id="filter-type" class="filter-select">
+            <option value="">Tous les types</option>
+            <option value="festival">Festival</option>
+            <option value="salle">Salle</option>
+            <option value="bar">Bar</option>
+            <option value="intérieur">Intérieur</option>
+            <option value="extérieur">Extérieur</option>
+            <option value="privé">Privé</option>
+            <option value="tournée">Tournée</option>
+          </select>
+        </div>
+        <button class="btn-reset-filters" id="btn-reset-filters">Réinitialiser</button>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-info" id="user-info">
+          <div class="user-avatar" id="user-avatar">?</div>
+          <span id="user-display-name">Utilisateur</span>
+        </div>
+        <button class="btn-logout" id="btn-logout">Déconnexion</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="main-content">
+
+      <!-- Top Bar (mobile) -->
+      <header class="topbar glass">
+        <button class="hamburger" id="hamburger"><i data-lucide="menu"></i></button>
+        <span class="topbar-title">TimeLive<span class="accent">AHP</span></span>
+        <button class="btn-add-top" id="btn-add-top"><i data-lucide="plus"></i></button>
+      </header>
+
+      <!-- ---- VIEW: TIMELINE ---- -->
+      <section id="view-timeline" class="view active">
+        <div class="view-header">
+          <h2 class="view-title">Concerts</h2>
+          <span class="view-subtitle" id="concerts-count">0 concerts</span>
+        </div>
+        <div id="timeline-container">
+          <div class="empty-state">
+            <div class="empty-icon">🎤</div>
+            <p>Aucun concert pour le moment.</p>
+            <button class="btn-primary" id="btn-add-empty">Ajouter un concert</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---- VIEW: DASHBOARD ---- -->
+      <section id="view-dashboard" class="view">
+        <div class="view-header">
+          <h2 class="view-title">Dashboard</h2>
+        </div>
+        <div class="dashboard-grid" id="dashboard-content">
+          <div class="stat-card glass">
+            <div class="stat-icon"><i data-lucide="mic-2"></i></div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Concerts cette année</div>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-icon"><i data-lucide="music-2"></i></div>
+            <div class="stat-value" id="stat-bands">0</div>
+            <div class="stat-label">Groupes actifs</div>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-icon"><i data-lucide="map-pin"></i></div>
+            <div class="stat-value" id="stat-cities">0</div>
+            <div class="stat-label">Villes jouées</div>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-icon"><i data-lucide="calendar-clock"></i></div>
+            <div class="stat-value" id="stat-upcoming">0</div>
+            <div class="stat-label">Concerts à venir</div>
+          </div>
+          <div class="stat-card glass">
+            <div class="stat-icon"><i data-lucide="euro"></i></div>
+            <div class="stat-value" id="stat-revenue">0 €</div>
+            <div class="stat-label">Revenus cette année</div>
+          </div>
+          <div class="chart-card glass" id="chart-by-band">
+            <h3>Concerts par groupe</h3>
+            <div id="band-chart-bars"></div>
+          </div>
+          <div class="chart-card glass" id="chart-by-city">
+            <h3>Top villes</h3>
+            <div id="city-chart-bars"></div>
+          </div>
+          <div class="chart-card glass" id="chart-by-revenue">
+            <h3>Revenus par groupe</h3>
+            <div id="revenue-chart-bars"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---- VIEW: BANDS ---- -->
+      <section id="view-bands" class="view">
+        <div class="view-header">
+          <h2 class="view-title">Mes Groupes</h2>
+          <button class="btn-secondary" id="btn-add-band"><i data-lucide="plus"
+              style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Nouveau groupe</button>
+        </div>
+        <div class="bands-grid" id="bands-container">
+          <div class="empty-state">
+            <div class="empty-icon">🎸</div>
+            <p>Aucun groupe créé.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BOUTON FLOTTANT -->
+    <button class="fab" id="fab-add" title="Ajouter un concert"><i data-lucide="plus"></i></button>
+
+  </div>
+
+  <!-- ===================== MODALS ===================== -->
+
+  <!-- Modal Concert -->
+  <div id="modal-concert" class="modal-overlay hidden">
+    <div class="modal-box glass">
+      <div class="modal-header">
+        <h3 id="modal-concert-title">Nouveau Concert</h3>
+        <button class="modal-close" id="close-concert-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <!-- Ligne 1 : Groupe + Statut -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Groupe *</label>
+            <select id="concert-band" required>
+              <option value="">Sélectionner un groupe</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Statut</label>
+            <select id="concert-status">
+              <option value="confirmé">✅ Confirmé</option>
+              <option value="option">🟡 Option</option>
+              <option value="négociation">🔵 En négociation</option>
+              <option value="annulé">❌ Annulé</option>
+            </select>
+          </div>
+        </div>
+        <!-- Ligne 2 : Type + Cachet -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type d'événement</label>
+            <select id="concert-type">
+              <option value="">Choisir un type</option>
+              <option value="festival">🎪 Festival</option>
+              <option value="salle">🏛️ Salle</option>
+              <option value="bar">🍺 Bar</option>
+              <option value="intérieur">🏠 Intérieur</option>
+              <option value="extérieur">🌳 Extérieur</option>
+              <option value="privé">🔒 Privé</option>
+              <option value="tournée">🚌 Tournée</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cachet (€)</label>
+            <input type="number" id="concert-fee" placeholder="Ex: 1500" min="0" step="50" />
+          </div>
+        </div>
+        <!-- Ligne 3 : Date + Heure -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date *</label>
+            <input type="date" id="concert-date" required />
+          </div>
+          <div class="form-group">
+            <label>Heure</label>
+            <input type="time" id="concert-time" />
+          </div>
+        </div>
+        <!-- Lieu -->
+        <div class="form-group">
+          <label>Nom du lieu *</label>
+          <input type="text" id="concert-venue" placeholder="Ex: Zénith de Paris" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ville *</label>
+            <input type="text" id="concert-city" placeholder="Ex: Paris" required />
+          </div>
+          <div class="form-group">
+            <label>Pays</label>
+            <input type="text" id="concert-country" placeholder="Ex: France" value="France" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Lien Google Maps</label>
+          <input type="url" id="concert-maps" placeholder="https://maps.google.com/..." />
+        </div>
+
+        <!-- Séparateur Contacts -->
+        <div class="form-section-title">
+          <i data-lucide="users" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Contacts
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Organisateur — Nom</label>
+            <input type="text" id="contact-org-name" placeholder="Ex: Jean Dupont" />
+          </div>
+          <div class="form-group">
+            <label>Organisateur — Tél</label>
+            <input type="tel" id="contact-org-phone" placeholder="Ex: +33 6 12 34 56 78" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Organisateur — Email</label>
+          <input type="email" id="contact-org-email" placeholder="organisateur@email.com" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Booker — Nom</label>
+            <input type="text" id="contact-booker-name" placeholder="Ex: Marie Martin" />
+          </div>
+          <div class="form-group">
+            <label>Booker — Tél</label>
+            <input type="tel" id="contact-booker-phone" placeholder="Ex: +33 6 98 76 54 32" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ingé Son — Nom</label>
+            <input type="text" id="contact-sound-name" placeholder="Ex: Paul Leblanc" />
+          </div>
+          <div class="form-group">
+            <label>Ingé Son — Tél</label>
+            <input type="tel" id="contact-sound-phone" placeholder="Ex: +33 6 11 22 33 44" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ingé Lumière — Nom</label>
+            <input type="text" id="contact-light-name" placeholder="Ex: Sophie Bernard" />
+          </div>
+          <div class="form-group">
+            <label>Ingé Lumière — Tél</label>
+            <input type="tel" id="contact-light-phone" placeholder="Ex: +33 6 55 66 77 88" />
+          </div>
+        </div>
+
+        <!-- Séparateur Infos supplémentaires -->
+        <div class="form-section-title">
+          <i data-lucide="file-text" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Infos
+          supplémentaires
+        </div>
+        <div class="form-group">
+          <label>URL Affiche (optionnel)</label>
+          <input type="url" id="concert-poster" placeholder="https://..." />
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="concert-notes" rows="3" placeholder="Infos pratiques, set list, rider..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancel-concert-modal">Annuler</button>
+        <button class="btn-primary" id="save-concert-btn">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Groupe -->
+  <div id="modal-band" class="modal-overlay hidden">
+    <div class="modal-box glass">
+      <div class="modal-header">
+        <h3 id="modal-band-title">Nouveau Groupe</h3>
+        <button class="modal-close" id="close-band-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nom du groupe *</label>
+          <input type="text" id="band-name" placeholder="Ex: Les Fantômes" required />
+        </div>
+        <div class="form-group">
+          <label>Couleur du groupe</label>
+          <div class="color-picker-row">
+            <input type="color" id="band-color" value="#ebeab0" />
+            <span id="band-color-preview" class="color-preview" style="background:#ebeab0"></span>
+            <span class="color-swatches">
+              <span class="swatch" style="background:#ebeab0" data-color="#ebeab0"></span>
+              <span class="swatch" style="background:#2563eb" data-color="#2563eb"></span>
+              <span class="swatch" style="background:#059669" data-color="#059669"></span>
+              <span class="swatch" style="background:#dc2626" data-color="#dc2626"></span>
+              <span class="swatch" style="background:#d97706" data-color="#d97706"></span>
+              <span class="swatch" style="background:#db2777" data-color="#db2777"></span>
+            </span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>URL Logo (optionnel)</label>
+          <input type="url" id="band-logo" placeholder="https://..." />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancel-band-modal">Annuler</button>
+        <button class="btn-primary" id="save-band-btn">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Détail Concert -->
+  <div id="modal-detail" class="modal-overlay hidden">
+    <div class="modal-box modal-detail-box glass">
+      <div class="modal-header">
+        <h3 id="detail-band-name">Nom du Groupe</h3>
+        <button class="modal-close" id="close-detail-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="detail-body">
+        <!-- Rempli dynamiquement -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" id="detail-delete-btn"><i data-lucide="trash-2"
+            style="width:15px;height:15px;vertical-align:middle;margin-right:5px"></i>Supprimer</button>
+        <button class="btn-share" id="detail-share-btn"><i data-lucide="share-2"
+            style="width:15px;height:15px;vertical-align:middle;margin-right:5px"></i>Partager</button>
+        <button class="btn-primary" id="detail-edit-btn"><i data-lucide="pencil"
+            style="width:15px;height:15px;vertical-align:middle;margin-right:5px"></i>Modifier</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Overlay sidebar mobile -->
+  <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+
+  <script src="app.js"></script>
+
+  <!-- Enregistrement du Service Worker PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('[PWA] Service Worker enregistré:', reg.scope))
+          .catch(err => console.warn('[PWA] Erreur Service Worker:', err));
+      });
+    }
+  </script>
+</body>
+
+</html>
