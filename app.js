@@ -1548,7 +1548,7 @@ function initEventListeners() {
     .addEventListener("change", applyFilters);
   document
     .getElementById("filter-status")
-    .addEventListener("change", applyFilters);
+    ?.addEventListener("change", applyFilters);
   document
     .getElementById("btn-reset-filters")
     .addEventListener("click", resetFilters);
